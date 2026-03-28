@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Voting System</title>
+    <!-- Modern Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <div class="blob-bg"></div>
+
+    <div class="app-container">
+        
+        <!-- Header / Nav -->
+        <header id="app-header" class="hidden glass-nav">
+            <h1 class="logo">SmartVote <span class="badge" id="role-badge">Admin</span></h1>
+            <div class="nav-actions">
+                <button class="btn btn-outline" onclick="app.logout()">Logout</button>
+            </div>
+        </header>
+
+        <main>
+            <!-- LOGIN VIEW -->
+            <section id="login-view" class="view active center-content">
+                <div class="glass-panel login-panel slide-up">
+                    <div class="login-header">
+                        <h2>Welcome to SmartVote</h2>
+                        <p>Secure, transparent, and real-time voting.</p>
+                    </div>
+                    
+                    <div class="login-options">
+                        <!-- Admin Auth Section -->
+                        <div id="admin-auth-section">
+                            <div id="admin-login-form">
+                                <input type="text" id="admin-login-user" placeholder="Admin Username" class="form-input" style="margin-bottom: 0.5rem;">
+                                <input type="password" id="admin-login-pass" placeholder="Admin Password" class="form-input" style="margin-bottom: 1rem;">
+                                <button class="btn btn-primary btn-block" onclick="app.loginAdmin()">
+                                    🛡️ Sign In as Admin
+                                </button>
+                            </div>
+                            <div id="admin-setup-form" style="display:none;">
+                                <p class="small-text text-muted" style="margin-bottom: 0.5rem;">First-time setup: Create your Admin account.</p>
+                                <input type="text" id="admin-setup-user" placeholder="Choose Username" class="form-input" style="margin-bottom: 0.5rem;">
+                                <input type="password" id="admin-setup-pass" placeholder="Choose Password" class="form-input" style="margin-bottom: 0.5rem;">
+                                <input type="password" id="admin-setup-pass2" placeholder="Confirm Password" class="form-input" style="margin-bottom: 1rem;">
+                                <button class="btn btn-primary btn-block" onclick="app.setupAdmin()">
+                                    🛡️ Create Admin Account
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="divider"><span>OR</span></div>
+                        
+                        <div class="voter-auth-section">
+                            <div class="tabs mb-2" style="display:flex; gap:0.5rem; margin-bottom: 1rem;">
+                                <button class="btn btn-secondary" style="flex:1" id="tab-login" onclick="app.switchVoterTab('login')">Sign In</button>
+                                <button class="btn btn-outline" style="flex:1" id="tab-register" onclick="app.switchVoterTab('register')">Register</button>
+                            </div>
+                            
+                            <!-- Voter Login Form -->
+                            <div id="voter-login-form">
+                                <input type="email" id="voter-login-email" placeholder="Email Address" class="form-input" style="margin-bottom: 0.5rem;">
+                                <input type="password" id="voter-login-pass" placeholder="Password" class="form-input" style="margin-bottom: 1rem;">
+                                <button class="btn btn-secondary btn-block" onclick="app.loginVoter()">
+                                    🗳️ Sign In
+                                </button>
+                            </div>
+                            
+                            <!-- Voter Verify/Register Form -->
+                            <div id="voter-register-form" style="display:none;">
+                                <div id="voter-verify-step">
+                                    <input type="text" id="voter-reg-id" placeholder="Enter Valid Voter ID (e.g. V-123)" class="form-input" style="margin-bottom: 1rem;">
+                                    <button class="btn btn-primary btn-block" onclick="app.verifyVoterId()">
+                                        Verify ID
+                                    </button>
+                                </div>
+                                <div id="voter-signup-step" style="display:none;">
+                                    <p class="small-text text-muted" style="margin-bottom:0.5rem;">ID Verified. Complete your registration:</p>
+                                    <input type="text" id="voter-reg-name" placeholder="Full Name" class="form-input" style="margin-bottom: 0.5rem;">
+                                    <input type="email" id="voter-reg-email" placeholder="Email Address" class="form-input" style="margin-bottom: 0.5rem;">
+                                    <input type="password" id="voter-reg-pass" placeholder="Create Password" class="form-input" style="margin-bottom: 1rem;">
+                                    <button class="btn btn-secondary btn-block" onclick="app.registerVoter()">
+                                        Complete Registration
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="divider"><span>OR</span></div>
+
+                        <div class="candidate-login-section">
+                            <select id="candidate-login-select" class="form-select">
+                                <option value="" disabled selected>Select candidate profile</option>
+                                <!-- Populated dynamically -->
+                            </select>
+                            <button class="btn btn-outline btn-block" onclick="app.loginCandidate()">
+                                🏆 Enter as Candidate
+                            </button>
+                        </div>
+                        <p class="small-text text-muted mt-2">Candidates, please wait for an Admin to register your profile.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ADMIN DASHBOARD -->
+            <section id="admin-view" class="view">
+                <div class="dashboard-grid fade-in">
+                    <!-- Column 1: Manage Positions & Notifications -->
+                    <div class="column">
+                        <div class="glass-panel">
+                            <h3>Add Election Position</h3>
+                            <div class="form-group row-inline">
+                                <input type="text" id="new-position-name" placeholder="E.g., President" class="form-input">
+                                <button class="btn btn-primary" onclick="app.admin.addPosition()">Add</button>
+                            </div>
+                            <ul id="admin-positions-list" class="item-list mt-2"></ul>
+                        </div>
+
+                        <div class="glass-panel" style="margin-top: 1rem;">
+                            <h3>Election Schedule</h3>
+                            <div class="form-group">
+                                <label class="small-text text-muted">Start Time</label>
+                                <input type="datetime-local" id="admin-start-time" class="form-input">
+                            </div>
+                            <div class="form-group mt-2">
+                                <label class="small-text text-muted">End Time</label>
+                                <input type="datetime-local" id="admin-end-time" class="form-input">
+                            </div>
+                            <button class="btn btn-secondary mt-2" onclick="app.admin.saveSettings()">Save Schedule</button>
+                        </div>
+
+                        <div class="glass-panel">
+                            <h3>Broadcast Notification</h3>
+                            <div class="form-group row-inline">
+                                <input type="text" id="new-notification-text" placeholder="Important announcement..." class="form-input">
+                                <button class="btn btn-alert" onclick="app.admin.postNotification()">Broadcast</button>
+                            </div>
+                            <ul id="admin-notifications-list" class="notification-list mt-2"></ul>
+                        </div>
+
+                        <div class="glass-panel" style="margin-top: 1rem;">
+                            <h3>Manage Voter Roll</h3>
+                            <div class="form-group row-inline">
+                                <input type="text" id="new-voter-id" placeholder="New Voter ID" class="form-input">
+                                <input type="email" id="new-voter-email" placeholder="Voter Email Address" class="form-input">
+                                <button class="btn btn-secondary" onclick="app.admin.addVoterId()">Whitelist</button>
+                            </div>
+                            <ul id="admin-voter-ids-list" class="item-list mt-2" style="max-height:150px;overflow-y:auto;"></ul>
+                        </div>
+
+                        <div class="glass-panel" style="margin-top: 1rem;">
+                            <h3>🔒 Admin Account Settings</h3>
+                            <div class="form-group">
+                                <input type="password" id="admin-current-pass" placeholder="Current Password" class="form-input">
+                            </div>
+                            <div class="form-group mt-2">
+                                <input type="text" id="admin-new-user" placeholder="New Username" class="form-input">
+                            </div>
+                            <div class="form-group mt-2">
+                                <input type="password" id="admin-new-pass" placeholder="New Password" class="form-input">
+                            </div>
+                            <button class="btn btn-primary mt-2" onclick="app.admin.updateCredentials()">Update Credentials</button>
+                        </div>
+                    </div>
+
+                    <!-- Column 2: Manage Candidates -->
+                    <div class="column span-2">
+                        <div class="glass-panel">
+                            <h3>Candidate Management</h3>
+                            <div class="add-candidate-form form-grid">
+                                <input type="text" id="cand-name" placeholder="Candidate Name" class="form-input">
+                                <input type="text" id="cand-bio" placeholder="Short Bio / Slogan" class="form-input">
+                                <select id="cand-position" class="form-select"></select>
+                                <div class="form-group">
+                                    <label class="small-text text-muted">Candidate Photo</label>
+                                    <input type="file" id="cand-image" accept="image/*" class="form-input" style="padding:0.4rem;">
+                                </div>
+                                <button class="btn btn-primary" onclick="app.admin.addCandidate()">Register Candidate</button>
+                            </div>
+                            
+                            <div class="table-container mt-3">
+                                <h4>Registered Candidates</h4>
+                                <table class="modern-table" id="admin-candidates-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Photo</th>
+                                            <th>Name</th>
+                                            <th>Position</th>
+                                            <th>Status</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <!-- Dynamic rows -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Full Width: Live Monitor -->
+                    <div class="glass-panel span-full">
+                        <h3>📈 Live Vote Monitor</h3>
+                        <div id="admin-live-results" class="results-grid mt-2">
+                            <!-- Dynamic charts -->
+                        </div>
+                    </div>
+
+                </div>
+            </section>
+
+            <!-- VOTER DASHBOARD -->
+            <section id="voter-view" class="view">
+                <div class="dashboard-grid fade-in">
+
+                    <div class="glass-panel span-full header-panel">
+                        <h2>Voter Dashboard</h2>
+                        <p>Welcome, <strong class="accent-text" id="voter-name-display"></strong>. Make your vote count!</p>
+                    </div>
+
+                    <div class="glass-panel span-full alert-box" id="voter-notification-area">
+                        <h3>🔔 Election Announcements</h3>
+                        <p class="small-text text-muted mb-2">By-elections, new posts, voting schedule, and admin broadcasts.</p>
+                        <ul id="voter-notification-list" class="notification-list" style="max-height:200px;overflow-y:auto;list-style:none;padding:0;"></ul>
+                        <p id="voter-no-notifications" class="text-muted" style="display:none;">No announcements yet.</p>
+                    </div>
+
+                    <div class="glass-panel span-full">
+                        <h3>🗳️ Cast Your Vote</h3>
+                        <p class="text-muted mb-2">You may cast ONE vote per position.</p>
+                        
+                        <div id="voter-ballot-area" class="ballot-area">
+                            <!-- Populated with positions and candidates -->
+                        </div>
+                    </div>
+                    
+                    <div class="glass-panel span-full mt-2">
+                        <h3>📊 Live Election Results</h3>
+                        <div id="voter-live-results" class="results-grid">
+                            <!-- Dynamic charts -->
+                        </div>
+                    </div>
+
+                </div>
+            </section>
+
+            <!-- CANDIDATE DASHBOARD -->
+            <section id="candidate-view" class="view">
+                <div class="dashboard-grid fade-in">
+
+                    <div class="glass-panel span-full header-panel candidate-header">
+                        <h2>Candidate Dashboard</h2>
+                        <p>Monitor your campaign in real time.</p>
+                    </div>
+
+                    <div class="glass-panel candidate-profile">
+                        <div class="profile-avatar" id="cand-profile-avatar">👤</div>
+                        <h3 id="cand-profile-name">Name</h3>
+                        <span class="badge" id="cand-profile-position">Position</span>
+                        <p id="cand-profile-bio" class="mt-2 text-muted">Bio...</p>
+                        <div class="status-indicator mt-2" id="cand-profile-status">Status: Pending</div>
+                    </div>
+
+                    <div class="glass-panel live-stats pulse-container">
+                        <h3>Current Vote Count</h3>
+                        <div class="huge-number text-gradient" id="cand-live-votes">0</div>
+                        <p class="text-muted mt-2">Votes updated in real-time across the network</p>
+                    </div>
+
+                </div>
+            </section>
+
+        </main>
+        
+        <!-- Toast Notification Container -->
+        <div id="toast-container" class="toast-container"></div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="js/store.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
